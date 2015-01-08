@@ -1,0 +1,48 @@
+<input type="file" id="uploadfile" name="uploadfile" />
+<input type="button" value="upload" onclick="upload()" />
+
+<div id="progressbar" style="background-color:red;height:5px;width:0%"></div>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+
+<script>
+   var client = new XMLHttpRequest();
+  
+   function upload() 
+   {
+
+      var file = document.getElementById("uploadfile");
+     
+      /* Create a FormData instance */
+      var formData = new FormData();
+      /* Add the file */ 
+      formData.append("file", file.files[0]);
+
+      console.log(file.files[0]);
+
+       client.addEventListener('progress', function(e) {
+          var done = e.loaded, total =  e.total;
+          console.log('client progress: ' + (Math.floor(done/total*1000)/10) + '%');
+      }, false);
+      if ( client.upload ) {
+          client.upload.onprogress = function(e) {
+              var done = e.loaded, total = e.total;
+              $("#progressbar").css('width',(Math.floor(done/total*1000)/10) + '%');
+          };
+      }
+
+        /* Check the response status */  
+       client.onreadystatechange = function() 
+       {
+          if (client.readyState == 4 && client.status == 200) 
+          {
+            console.log(client.responseText);
+            console.log(client.statusText);
+          }
+       }
+
+
+      client.open("post", "example-script.php", true);
+      client.send(formData);  /* Send to server */ 
+   }
+</script>
