@@ -1,4 +1,4 @@
 <?php
-rename($_FILES['file']['tmp_name'], 'uploads/' . $_FILES['file']['name']);
+unlink($_FILES['file']['tmp_name']);
 echo $_FILES['file']['name'];
 ?>
