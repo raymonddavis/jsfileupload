@@ -1,1 +1,1 @@
-<?php shell_exec('cd /var/www/git/jsfileupload && git pull'); echo getcwd();
+<?php shell_exec('git pull');
