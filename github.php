@@ -1,1 +1,1 @@
-<?php if(function_exists('exec')) { echo "exec is enabled"; }
+<?php shell_exec('git pull');
