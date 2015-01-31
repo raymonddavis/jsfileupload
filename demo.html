@@ -1,48 +1,106 @@
-<input type="file" id="uploadfile" name="uploadfile" />
-<input type="button" value="upload" onclick="upload()" />
+<html>
+  <head></head>
+  <body>
+    <input type="file" id="uploadfile" name="uploadfile" />
+    <input type="button" value="upload" onclick="upload()" />
 
-<div id="progressbar" style="background-color:red;height:5px;width:0%"></div>
+    <div id="progressbar" style="background-color:blue;height:5px;width:0%"></div>
+    <div id="thumbnails" style="border: 5px solid red;width:150px;height:150px;"></div>
+    <div id="image" style="width:100%"></div>
+  </body>
+</html>
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
 
 <script>
-   var client = new XMLHttpRequest();
-  
-   function upload() 
-   {
+  var size = 150;
 
-      var file = document.getElementById("uploadfile");
-     
-      /* Create a FormData instance */
-      var formData = new FormData();
-      /* Add the file */ 
-      formData.append("file", file.files[0]);
-
-      console.log(file.files[0]);
-
-       client.addEventListener('progress', function(e) {
-          var done = e.loaded, total =  e.total;
-          console.log('client progress: ' + (Math.floor(done/total*1000)/10) + '%');
-      }, false);
-      if ( client.upload ) {
-          client.upload.onprogress = function(e) {
-              var done = e.loaded, total = e.total;
-              $("#progressbar").css('width',(Math.floor(done/total*1000)/10) + '%');
-          };
+  function newFile(e){
+    var canvas = document.getElementById('imageCanvas'); //Temp
+    if (canvas) //Temp
+      canvas.remove(); //Temp
+    //Create canvas element
+    canvas = document.createElement('canvas');
+    div = document.getElementById('thumbnails');
+    canvas.id = "imageCanvas"; //Temp
+    canvas.setAttribute('width', size);
+    canvas.setAttribute('height', size);
+    div.appendChild(canvas); 
+    var ctx = canvas.getContext('2d');
+    var reader = new FileReader();
+    reader.onload = function(event){
+      var img = new Image();
+      img.onload = function(){
+        var height = canvas.height;
+        var width = canvas.width;
+        var newHeight = canvas.height;
+        var newWidth = canvas.width;
+        var ratio = img.height/img.width;
+        if (img.height > img.width) {
+          if (ratio > 1)
+            newWidth = height / ratio;
+          else
+            newWidth = height * ratio;
+        } else if (img.height < img.width) {
+          if (ratio > 1)
+            newHeight = width / ratio;
+          else
+            newHeight = width * ratio;
+        }
+        var leftSpace = width - newWidth;
+        var topSpace = height - newHeight;
+        canvas.height = newHeight;
+        canvas.width = newWidth;
+        canvas.style.marginLeft = leftSpace/2;
+        canvas.style.marginTop = topSpace/2;
+        ctx.drawImage(img,0,0,newWidth,newHeight);
       }
+      img.src = event.target.result;
+    }
+    reader.readAsDataURL(e.target.files[0]);     
+  }
 
-        /* Check the response status */  
-       client.onreadystatechange = function() 
-       {
-          if (client.readyState == 4 && client.status == 200) 
-          {
-            console.log(client.responseText);
-            console.log(client.statusText);
-          }
-       }
+   function upload() {
+    var client = new XMLHttpRequest();
+    var file = document.getElementById("uploadfile");
+   
+    /* Create a FormData instance */
+    var formData = new FormData();
+    /* Add the file */ 
+    formData.append("file", file.files[0]);
+
+    console.log(file.files[0]);
+
+     client.addEventListener('progress', function(e) {
+        var done = e.loaded, total =  e.total;
+    }, false);
+    if ( client.upload ) {
+        client.upload.onprogress = function(e) {
+            var done = e.loaded, total = e.total;
+            $("#progressbar").css('width',(Math.floor(done/total*1000)/10) + '%');
+        };
+    }
+
+      /* Check the response status */  
+     client.onreadystatechange = function() 
+     {
+        if (client.readyState == 4 && client.status == 200) 
+        {
+          var image = client.responseText.replace(/"/g, '');
+          $('#image').empty();
+          $('#image').append('<img src="uploads/'+image+'" style="width:100%;" />');
+          //console.log(client.responseText);
+          //console.log(client.statusText);
+        }
+     }
 
 
-      client.open("post", "example-script.php", true);
-      client.send(formData);  /* Send to server */ 
+    client.open("post", "example-script.php", true);
+    client.send(formData);  /* Send to server */ 
    }
+
+   $(document).ready(function() {
+    var uploadfile = document.getElementById('uploadfile');
+      uploadfile.addEventListener('change', newFile, false);
+   });
 </script>
